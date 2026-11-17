@@ -33,20 +33,14 @@ public partial class SelectionIconWindow : Window
     }
 
     private static IntPtr GetWindowLongPtr(IntPtr hWnd, int index) =>
-        IntPtr.Size == 8 ? GetWindowLongPtr64(hWnd, index) : (IntPtr)GetWindowLong32(hWnd, index);
+        (IntPtr)GetWindowLongW(hWnd, index);
 
     private static IntPtr SetWindowLongPtr(IntPtr hWnd, int index, IntPtr value) =>
-        IntPtr.Size == 8 ? SetWindowLongPtr64(hWnd, index, value) : (IntPtr)SetWindowLong32(hWnd, index, value.ToInt32());
+        (IntPtr)SetWindowLongW(hWnd, index, value.ToInt32());
 
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern int GetWindowLong32(IntPtr hWnd, int index);
+    [System.Runtime.InteropServices.DllImport("user32.dll", EntryPoint = "GetWindowLongW", SetLastError = true)]
+    private static extern int GetWindowLongW(IntPtr hWnd, int index);
 
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern IntPtr GetWindowLongPtr64(IntPtr hWnd, int index);
-
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern int SetWindowLong32(IntPtr hWnd, int index, int value);
-
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern IntPtr SetWindowLongPtr64(IntPtr hWnd, int index, IntPtr value);
+    [System.Runtime.InteropServices.DllImport("user32.dll", EntryPoint = "SetWindowLongW", SetLastError = true)]
+    private static extern int SetWindowLongW(IntPtr hWnd, int index, int value);
 }

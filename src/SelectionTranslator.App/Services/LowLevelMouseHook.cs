@@ -125,7 +125,7 @@ public sealed class LowLevelMouseHook : IDisposable
         public POINT pt;
     }
 
-    [DllImport("user32.dll", SetLastError = true)]
+    [DllImport("user32.dll", EntryPoint = "SetWindowsHookExW", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern IntPtr SetWindowsHookEx(int idHook, HookProc lpfn, IntPtr hMod, uint dwThreadId);
 
     [DllImport("user32.dll", SetLastError = true)]
@@ -134,21 +134,21 @@ public sealed class LowLevelMouseHook : IDisposable
     [DllImport("user32.dll")]
     private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", EntryPoint = "GetMessageW", CharSet = CharSet.Unicode)]
     private static extern int GetMessage(out MSG lpMsg, IntPtr hWnd, uint wMsgFilterMin, uint wMsgFilterMax);
 
     [DllImport("user32.dll")]
     private static extern bool TranslateMessage(ref MSG lpMsg);
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", EntryPoint = "DispatchMessageW", CharSet = CharSet.Unicode)]
     private static extern IntPtr DispatchMessage(ref MSG lpMsg);
 
-    [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+    [DllImport("kernel32.dll", EntryPoint = "GetModuleHandleW", CharSet = CharSet.Unicode)]
     private static extern IntPtr GetModuleHandle(string? lpModuleName);
 
     [DllImport("kernel32.dll")]
     private static extern uint GetCurrentThreadId();
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", EntryPoint = "PostThreadMessageW", CharSet = CharSet.Unicode)]
     private static extern bool PostThreadMessage(uint idThread, uint msg, IntPtr wParam, IntPtr lParam);
 }
