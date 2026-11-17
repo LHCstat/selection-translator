@@ -21,10 +21,10 @@ public class PromptBuilderTests
     }
 
     [Fact]
-    public void Context_is_prefixed_to_user_prompt()
+    public void Context_goes_to_system_prompt_not_user_text()
     {
         var messages = PromptBuilder.Build(new TranslationRequest("hello", null, "简体中文", "BBC News"));
-        Assert.Contains("BBC News", messages[1].Content);
-        Assert.EndsWith("hello", messages[1].Content);
+        Assert.Contains("BBC News", messages[0].Content);
+        Assert.Equal("hello", messages[1].Content);
     }
 }
