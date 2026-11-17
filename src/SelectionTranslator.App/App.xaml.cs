@@ -97,6 +97,9 @@ public partial class App : System.Windows.Application
         }
 
         AppLog.Info("started");
+
+        if (string.IsNullOrEmpty(settingsStore.Current.Translate.ApiKeyProtected))
+            Dispatcher.BeginInvoke(new Action(ShowSettings));
     }
 
     private void ShowSettings()
