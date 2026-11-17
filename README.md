@@ -30,6 +30,18 @@ Windows 系统级划词翻译工具：在任意程序里选中英文，点击悬
 - 终端类程序只使用 UIA 取词，可能取不到
 - 首次使用需要自行申请免费 API Key（智谱开放平台）
 
+## 安装到本机
+
+```bash
+dotnet publish src/SelectionTranslator.App -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o publish/framework-dependent
+powershell -ExecutionPolicy Bypass -File scripts/install.ps1
+```
+
+安装位置：`%LOCALAPPDATA%\Programs\SelectionTranslator`，并在桌面和开始菜单创建「划译」快捷方式。
+更新版本时重新执行上面两条命令即可。
+
+卸载：删除安装目录和两个快捷方式；如果开过机自启，在设置里取消即可。
+
 ## 构建
 
 需要 .NET 8 SDK：
