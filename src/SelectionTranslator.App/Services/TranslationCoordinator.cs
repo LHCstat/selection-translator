@@ -75,6 +75,22 @@ public sealed class TranslationCoordinator
         await TranslateSelectionAsync(point.X, point.Y, ForegroundProcessName());
     }
 
+    public void DismissIfOutside(int screenX, int screenY)
+    {
+        if (_popup is null || !_popup.IsVisible)
+            return;
+
+        var handle = new System.Windows.Interop.WindowInteropHelper(_popup).Handle;
+        if (handle != IntPtr.Zero && NativeMethods.GetWindowRect(handle, out var rect))
+        {
+            if (screenX >= rect.Left && screenX <= rect.Right &&
+                screenY >= rect.Top && screenY <= rect.Bottom)
+                return;
+        }
+
+        _popup.Hide();
+    }
+
     public async Task TranslateTextAsync(string text, int x, int y, CancellationToken cancellationToken = default)
     {
         _lastText = text;

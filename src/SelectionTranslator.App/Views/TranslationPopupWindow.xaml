@@ -1,28 +1,86 @@
 <Window x:Class="SelectionTranslator.App.Views.TranslationPopupWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Width="420" SizeToContent="Height" MaxHeight="560"
+        Width="440" SizeToContent="Height" MaxHeight="580"
+        Foreground="{DynamicResource InkBrush}"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ShowInTaskbar="False" Topmost="True" ShowActivated="False"
-        ResizeMode="NoResize">
-  <Border Background="#FF1F1F1F" CornerRadius="10" Padding="14"
-          BorderBrush="#33FFFFFF" BorderThickness="1">
-    <StackPanel>
-      <TextBlock Text="{Binding OriginalText}" Foreground="#B0FFFFFF" TextWrapping="Wrap"
-                 MaxHeight="80" TextTrimming="CharacterEllipsis" FontSize="12"
-                 MouseLeftButtonDown="OnDragArea"/>
-      <Border Height="1" Background="#22FFFFFF" Margin="0,10"/>
-      <ScrollViewer MaxHeight="330" VerticalScrollBarVisibility="Auto">
-        <TextBlock Text="{Binding Translation}" Foreground="#FFF0F0F0" TextWrapping="Wrap" FontSize="14"/>
-      </ScrollViewer>
-      <TextBlock Text="{Binding Error}" Foreground="#FFFF6B6B" TextWrapping="Wrap" Margin="0,6,0,0"/>
-      <DockPanel Margin="0,10,0,0" LastChildFill="False">
-        <TextBlock Text="{Binding Status}" Foreground="#80FFFFFF" FontSize="11"
-                   VerticalAlignment="Center"/>
-        <Button Content="关闭" Command="{Binding CloseCommand}" Margin="8,0,0,0" DockPanel.Dock="Right"/>
-        <Button Content="重试" Command="{Binding RetryCommand}" Margin="8,0,0,0" DockPanel.Dock="Right"/>
-        <Button Content="复制" Command="{Binding CopyCommand}" Margin="8,0,0,0" DockPanel.Dock="Right"/>
-      </DockPanel>
-    </StackPanel>
+        ResizeMode="NoResize" WindowStartupLocation="Manual">
+  <Window.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/SelectionTranslator.App;component/Themes/Dark.xaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Window.Resources>
+  <Border Margin="10" CornerRadius="12"
+          Background="{DynamicResource ElevatedBrush}"
+          BorderBrush="{DynamicResource BorderBrush}"
+          BorderThickness="1"
+          Effect="{StaticResource PopupShadow}"
+          MouseLeftButtonDown="OnDragArea">
+    <Grid Background="Transparent">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+
+      <Border x:Name="Spine" Grid.Column="0" Width="3" Margin="0,15"
+              CornerRadius="2" HorizontalAlignment="Left">
+        <Border.Style>
+          <Style TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource SpineIdleBrush}"/>
+            <Style.Triggers>
+              <DataTrigger Binding="{Binding IsStreaming}" Value="True">
+                <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+                <DataTrigger.EnterActions>
+                  <BeginStoryboard x:Name="Pulse">
+                    <Storyboard RepeatBehavior="Forever">
+                      <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                       From="1" To="0.3" Duration="0:0:0.8"
+                                       AutoReverse="True"/>
+                    </Storyboard>
+                  </BeginStoryboard>
+                </DataTrigger.EnterActions>
+                <DataTrigger.ExitActions>
+                  <StopStoryboard BeginStoryboardName="Pulse"/>
+                </DataTrigger.ExitActions>
+              </DataTrigger>
+            </Style.Triggers>
+          </Style>
+        </Border.Style>
+      </Border>
+
+      <StackPanel Grid.Column="1" Margin="15,9,18,12">
+        <Border Width="34" Height="3" CornerRadius="2"
+                Background="{DynamicResource BorderBrush}"
+                HorizontalAlignment="Center" Margin="0,0,0,10"
+                Cursor="SizeAll"/>
+
+        <TextBlock Text="{Binding OriginalText}"
+                   Style="{StaticResource SourceText}"
+                   MaxHeight="68" TextTrimming="CharacterEllipsis"/>
+
+        <ScrollViewer MaxHeight="330" Margin="0,11,0,0" VerticalScrollBarVisibility="Auto">
+          <TextBlock Text="{Binding Translation}"
+                     Style="{StaticResource TranslationText}"
+                     MinHeight="44"/>
+        </ScrollViewer>
+
+        <TextBlock Text="{Binding Error}"
+                   Foreground="{DynamicResource DangerBrush}"
+                   FontSize="12.5" TextWrapping="Wrap" Margin="0,8,0,0"/>
+
+        <DockPanel Margin="0,12,0,0" LastChildFill="False">
+          <TextBlock Text="{Binding Status}" Style="{StaticResource FaintText}"
+                     VerticalAlignment="Center"/>
+          <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+            <Button Content="复制" Command="{Binding CopyCommand}" Style="{StaticResource TextButton}"/>
+            <Button Content="重试" Command="{Binding RetryCommand}" Style="{StaticResource TextButton}"/>
+            <Button Content="关闭" Command="{Binding CloseCommand}" Style="{StaticResource TextButton}"/>
+          </StackPanel>
+        </DockPanel>
+      </StackPanel>
+    </Grid>
   </Border>
 </Window>

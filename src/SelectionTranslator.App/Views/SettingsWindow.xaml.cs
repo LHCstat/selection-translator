@@ -1,5 +1,5 @@
 using System.Windows;
-using System.Windows.Controls;
+using System.Windows.Input;
 using SelectionTranslator.App.Services;
 using SelectionTranslator.Core.Settings;
 
@@ -18,6 +18,7 @@ public partial class SettingsWindow : Window
     private readonly SettingsStore _store;
     private readonly ISecretProtector _protector;
     private readonly Action _onSaved;
+    private bool _loading = true;
 
     public SettingsWindow(SettingsStore store, ISecretProtector protector, Action onSaved)
     {
@@ -26,8 +27,17 @@ public partial class SettingsWindow : Window
         _protector = protector;
         _onSaved = onSaved;
 
+        MaxHeight = Math.Max(480, SystemParameters.WorkArea.Height - 24);
+        Height = Math.Min(784, MaxHeight);
+
         LoadSettings();
-        ProviderBox.SelectionChanged += OnProviderChanged;
+        _loading = false;
+
+        PreviewKeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Escape)
+                Close();
+        };
     }
 
     private void LoadSettings()
@@ -38,13 +48,6 @@ public partial class SettingsWindow : Window
         ShowIconBox.IsChecked = settings.Trigger.ShowIcon;
         AutoTranslateBox.IsChecked = settings.Trigger.AutoTranslate;
         AutoStartBox.IsChecked = AutoStartService.IsEnabled();
-
-        foreach (var item in ProviderBox.Items.OfType<ComboBoxItem>())
-            if (Equals(item.Tag, settings.Translate.Provider))
-                ProviderBox.SelectedItem = item;
-
-        if (ProviderBox.SelectedItem is null)
-            ProviderBox.SelectedIndex = 0;
 
         BaseUrlBox.Text = settings.Translate.BaseUrl;
         ModelBox.Text = settings.Translate.Model;
@@ -57,18 +60,59 @@ public partial class SettingsWindow : Window
         }
 
         ExcludeBox.Text = string.Join(Environment.NewLine, settings.Exclude.Processes);
+
+        SelectProvider(settings.Translate.Provider);
+        SelectTheme(settings.Ui.Theme);
     }
 
-    private void OnProviderChanged(object sender, SelectionChangedEventArgs e)
+    private void SelectProvider(string provider)
     {
-        if (ProviderBox.SelectedItem is not ComboBoxItem item)
+        switch (provider)
+        {
+            case "siliconflow": ChipSilicon.IsChecked = true; break;
+            case "deepseek": ChipDeepSeek.IsChecked = true; break;
+            case "ollama": ChipOllama.IsChecked = true; break;
+            case "glm": ChipGlm.IsChecked = true; break;
+            default: ChipCustom.IsChecked = true; break;
+        }
+    }
+
+    private void SelectTheme(string theme)
+    {
+        switch (theme)
+        {
+            case "light": ThemeLight.IsChecked = true; break;
+            case "dark": ThemeDark.IsChecked = true; break;
+            default: ThemeSystem.IsChecked = true; break;
+        }
+    }
+
+    private void OnProviderChecked(object sender, RoutedEventArgs e)
+    {
+        if (_loading)
             return;
 
-        if (item.Tag is string id && Presets.TryGetValue(id, out var preset))
+        if (sender is System.Windows.Controls.RadioButton { Tag: string id } && Presets.TryGetValue(id, out var preset))
         {
             BaseUrlBox.Text = preset.BaseUrl;
             ModelBox.Text = preset.Model;
         }
+    }
+
+    private string SelectedProvider()
+    {
+        if (ChipSilicon.IsChecked == true) return "siliconflow";
+        if (ChipDeepSeek.IsChecked == true) return "deepseek";
+        if (ChipOllama.IsChecked == true) return "ollama";
+        if (ChipCustom.IsChecked == true) return "custom";
+        return "glm";
+    }
+
+    private string SelectedTheme()
+    {
+        if (ThemeLight.IsChecked == true) return "light";
+        if (ThemeDark.IsChecked == true) return "dark";
+        return "system";
     }
 
     private void OnSave(object sender, RoutedEventArgs e)
@@ -79,16 +123,15 @@ public partial class SettingsWindow : Window
         settings.Trigger.AutoTranslate = AutoTranslateBox.IsChecked == true;
         settings.Trigger.AutoStart = AutoStartBox.IsChecked == true;
 
-        if (ProviderBox.SelectedItem is ComboBoxItem item && item.Tag is string id)
-            settings.Translate.Provider = id;
-
+        settings.Translate.Provider = SelectedProvider();
         settings.Translate.BaseUrl = BaseUrlBox.Text.Trim();
         settings.Translate.Model = ModelBox.Text.Trim();
         settings.Translate.TargetLang = TargetLangBox.Text.Trim();
-
         settings.Translate.ApiKeyProtected = string.IsNullOrEmpty(ApiKeyBox.Password)
             ? string.Empty
             : _protector.Protect(ApiKeyBox.Password);
+
+        settings.Ui.Theme = SelectedTheme();
 
         settings.Exclude.Processes = ExcludeBox.Text
             .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -100,4 +143,13 @@ public partial class SettingsWindow : Window
     }
 
     private void OnCancel(object sender, RoutedEventArgs e) => Close();
+
+    private void OnHeaderDrag(object sender, MouseButtonEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed)
+            return;
+
+        try { DragMove(); }
+        catch (InvalidOperationException) { }
+    }
 }

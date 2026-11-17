@@ -1,42 +1,124 @@
 <Window x:Class="SelectionTranslator.App.Views.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="划译设置" Width="520" Height="620"
-        WindowStartupLocation="CenterScreen">
-  <ScrollViewer Padding="20">
-    <StackPanel>
-      <TextBlock Text="触发" FontWeight="SemiBold" Margin="0,0,0,8"/>
-      <TextBlock Text="快捷键"/>
-      <TextBox x:Name="HotkeyBox" Margin="0,4,0,10"/>
-      <CheckBox x:Name="ShowIconBox" Content="划词后显示悬浮图标" Margin="0,4"/>
-      <CheckBox x:Name="AutoTranslateBox" Content="划词后直接翻译（容易误触）" Margin="0,4"/>
-      <CheckBox x:Name="AutoStartBox" Content="开机自动启动" Margin="0,4,0,16"/>
+        Title="划译设置" Width="604" Height="784"
+        Foreground="{DynamicResource InkBrush}"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" WindowStartupLocation="CenterScreen" ShowInTaskbar="True"
+        Topmost="True">
+  <Border Margin="12" CornerRadius="14"
+          Background="{DynamicResource SurfaceBrush}"
+          BorderBrush="{DynamicResource BorderBrush}"
+          BorderThickness="1"
+          Effect="{StaticResource PopupShadow}">
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
 
-      <TextBlock Text="翻译服务" FontWeight="SemiBold" Margin="0,0,0,8"/>
-      <ComboBox x:Name="ProviderBox" Margin="0,4,0,10">
-        <ComboBoxItem Content="智谱 GLM（免费）" Tag="glm"/>
-        <ComboBoxItem Content="硅基流动" Tag="siliconflow"/>
-        <ComboBoxItem Content="DeepSeek" Tag="deepseek"/>
-        <ComboBoxItem Content="Ollama（本地）" Tag="ollama"/>
-        <ComboBoxItem Content="自定义 OpenAI 兼容" Tag="custom"/>
-      </ComboBox>
-      <TextBlock Text="Base URL"/>
-      <TextBox x:Name="BaseUrlBox" Margin="0,4,0,10"/>
-      <TextBlock Text="模型"/>
-      <TextBox x:Name="ModelBox" Margin="0,4,0,10"/>
-      <TextBlock Text="API Key（DPAPI 加密保存）"/>
-      <PasswordBox x:Name="ApiKeyBox" Margin="0,4,0,10"/>
-      <TextBlock Text="目标语言"/>
-      <TextBox x:Name="TargetLangBox" Margin="0,4,0,16"/>
+      <Grid Grid.Row="0" Margin="24,20,16,12" Background="Transparent"
+            MouseLeftButtonDown="OnHeaderDrag">
+        <StackPanel>
+          <TextBlock Text="划译" FontSize="19" FontWeight="SemiBold"/>
+          <TextBlock Text="选中即译，不打断阅读" Style="{StaticResource MutedText}" Margin="0,4,0,0"/>
+        </StackPanel>
+        <Button Content="✕" Style="{StaticResource CloseButton}"
+                HorizontalAlignment="Right" VerticalAlignment="Top" Click="OnCancel"/>
+      </Grid>
 
-      <TextBlock Text="排除的应用（每行一个进程名）" FontWeight="SemiBold" Margin="0,0,0,8"/>
-      <TextBox x:Name="ExcludeBox" Height="90" AcceptsReturn="True"
-               VerticalScrollBarVisibility="Auto" Margin="0,4,0,16"/>
+      <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,0,24,8">
+        <StackPanel>
+          <TextBlock Text="翻译服务" Style="{StaticResource SectionLabel}" Margin="0,4,0,8"/>
+          <WrapPanel>
+            <RadioButton x:Name="ChipGlm" Style="{StaticResource ChipRadio}" GroupName="Provider"
+                         Tag="glm" Content="智谱 GLM" Checked="OnProviderChecked"/>
+            <RadioButton x:Name="ChipSilicon" Style="{StaticResource ChipRadio}" GroupName="Provider"
+                         Tag="siliconflow" Content="硅基流动" Checked="OnProviderChecked"/>
+            <RadioButton x:Name="ChipDeepSeek" Style="{StaticResource ChipRadio}" GroupName="Provider"
+                         Tag="deepseek" Content="DeepSeek" Checked="OnProviderChecked"/>
+            <RadioButton x:Name="ChipOllama" Style="{StaticResource ChipRadio}" GroupName="Provider"
+                         Tag="ollama" Content="Ollama" Checked="OnProviderChecked"/>
+            <RadioButton x:Name="ChipCustom" Style="{StaticResource ChipRadio}" GroupName="Provider"
+                         Tag="custom" Content="自定义" Checked="OnProviderChecked"/>
+          </WrapPanel>
 
-      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-        <Button Content="取消" Width="80" Margin="0,0,8,0" Click="OnCancel"/>
-        <Button Content="保存" Width="80" IsDefault="True" Click="OnSave"/>
-      </StackPanel>
-    </StackPanel>
-  </ScrollViewer>
+          <Grid Margin="0,6,0,0">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition/>
+              <ColumnDefinition Width="18"/>
+              <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0">
+              <TextBlock Text="Base URL" Style="{StaticResource MutedText}"/>
+              <TextBox x:Name="BaseUrlBox" Style="{StaticResource InputTextBox}" Margin="0,5,0,0"/>
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+              <TextBlock Text="模型" Style="{StaticResource MutedText}"/>
+              <TextBox x:Name="ModelBox" Style="{StaticResource InputTextBox}" Margin="0,5,0,0"/>
+            </StackPanel>
+          </Grid>
+
+          <TextBlock Text="API Key" Style="{StaticResource MutedText}" Margin="0,14,0,0"/>
+          <PasswordBox x:Name="ApiKeyBox" Style="{StaticResource InputPasswordBox}" Margin="0,5,0,0"/>
+          <TextBlock Text="使用 Windows DPAPI 加密后保存在本机"
+                     Style="{StaticResource FaintText}" Margin="0,6,0,0"/>
+
+          <Grid Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition/>
+              <ColumnDefinition Width="18"/>
+              <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0">
+              <TextBlock Text="目标语言" Style="{StaticResource MutedText}"/>
+              <TextBox x:Name="TargetLangBox" Style="{StaticResource InputTextBox}" Margin="0,5,0,0"/>
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+              <TextBlock Text="快捷键" Style="{StaticResource MutedText}"/>
+              <TextBox x:Name="HotkeyBox" Style="{StaticResource InputTextBox}" Margin="0,5,0,0"/>
+            </StackPanel>
+          </Grid>
+
+          <TextBlock Text="交互" Style="{StaticResource SectionLabel}"/>
+          <CheckBox x:Name="ShowIconBox" Style="{StaticResource ToggleSwitch}"
+                    Content="划词后显示悬浮图标" Margin="0,0,0,13"/>
+          <CheckBox x:Name="AutoTranslateBox" Style="{StaticResource ToggleSwitch}"
+                    Content="划词后直接翻译" Margin="0,0,0,13"/>
+          <CheckBox x:Name="AutoStartBox" Style="{StaticResource ToggleSwitch}"
+                    Content="开机自动启动" Margin="0,0,0,4"/>
+
+          <TextBlock Text="外观" Style="{StaticResource SectionLabel}"/>
+          <WrapPanel>
+            <RadioButton x:Name="ThemeSystem" Style="{StaticResource ChipRadio}" GroupName="Theme"
+                         Tag="system" Content="跟随系统"/>
+            <RadioButton x:Name="ThemeLight" Style="{StaticResource ChipRadio}" GroupName="Theme"
+                         Tag="light" Content="浅色"/>
+            <RadioButton x:Name="ThemeDark" Style="{StaticResource ChipRadio}" GroupName="Theme"
+                         Tag="dark" Content="深色"/>
+          </WrapPanel>
+
+          <TextBlock Text="排除的应用（每行一个进程名）" Style="{StaticResource SectionLabel}"/>
+          <TextBox x:Name="ExcludeBox" Style="{StaticResource InputTextBox}" Height="92"
+                   AcceptsReturn="True" TextWrapping="Wrap"
+                   VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"/>
+        </StackPanel>
+      </ScrollViewer>
+
+      <Border Grid.Row="2" BorderThickness="0,1,0,0"
+              BorderBrush="{DynamicResource BorderBrush}" Padding="24,14">
+        <DockPanel LastChildFill="False">
+          <TextBlock Text="配置仅保存在本机" Style="{StaticResource FaintText}"
+                     VerticalAlignment="Center"/>
+          <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+            <Button Content="取消" Style="{StaticResource GhostButton}"
+                    Margin="0,0,10,0" Click="OnCancel"/>
+            <Button Content="保存" Style="{StaticResource PrimaryButton}"
+                    Click="OnSave" IsDefault="True"/>
+          </StackPanel>
+        </DockPanel>
+      </Border>
+    </Grid>
+  </Border>
 </Window>

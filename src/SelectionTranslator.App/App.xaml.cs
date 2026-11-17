@@ -74,6 +74,7 @@ public partial class App : System.Windows.Application
 
         var settingsStore = _services.GetRequiredService<SettingsStore>();
         settingsStore.Load();
+        ThemeManager.Apply(settingsStore.Current.Ui.Theme);
         _services.GetRequiredService<TranslationCache>().Load();
 
         _tray = _services.GetRequiredService<TrayIconService>();
@@ -98,7 +99,13 @@ public partial class App : System.Windows.Application
 
         AppLog.Info("started");
 
-        if (string.IsNullOrEmpty(settingsStore.Current.Translate.ApiKeyProtected))
+        if (e.Args.Contains("--settings"))
+            Dispatcher.BeginInvoke(new Action(ShowSettings));
+        else if (e.Args.Contains("--preview"))
+            Dispatcher.BeginInvoke(new Action(() =>
+                _ = _services.GetRequiredService<TranslationCoordinator>()
+                    .TranslateTextAsync("The quiet hum of a library is its own kind of language.", 320, 260)));
+        else if (string.IsNullOrEmpty(settingsStore.Current.Translate.ApiKeyProtected))
             Dispatcher.BeginInvoke(new Action(ShowSettings));
     }
 
@@ -115,6 +122,7 @@ public partial class App : System.Windows.Application
     {
         var settings = _services!.GetRequiredService<SettingsStore>().Current;
         AutoStartService.SetEnabled(settings.Trigger.AutoStart);
+        ThemeManager.Apply(settings.Ui.Theme);
         ApplyHotkey(settings.Hotkey);
     }
 

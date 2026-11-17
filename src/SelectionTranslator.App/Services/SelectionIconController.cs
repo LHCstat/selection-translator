@@ -49,6 +49,9 @@ public sealed class SelectionIconController : IDisposable
     {
         _tracker.OnDown(e.X, e.Y, e.Time);
 
+        System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+            _coordinator.DismissIfOutside(e.X, e.Y)));
+
         if (_icon?.IsVisible != true || IsInsideIcon(e.X, e.Y))
             return;
 
@@ -85,6 +88,10 @@ public sealed class SelectionIconController : IDisposable
 
         _icon.Show();
         _icon.MoveTo(_x + 12, _y + 12);
+        _icon.Dispatcher.BeginInvoke(new Action(() =>
+        {
+            _icon?.MoveTo(_x + 12, _y + 12);
+        }), DispatcherPriority.ApplicationIdle);
         _hideTimer.Start();
     }
 
