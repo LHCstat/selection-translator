@@ -103,7 +103,7 @@ public partial class App : System.Windows.Application
     {
         var window = new SettingsWindow(
             _services!.GetRequiredService<SettingsStore>(),
-            _services.GetRequiredService<ISecretProtector>(),
+            _services!.GetRequiredService<ISecretProtector>(),
             ApplySettings);
         window.ShowDialog();
     }

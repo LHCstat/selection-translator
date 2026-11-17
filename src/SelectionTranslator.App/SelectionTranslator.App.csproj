@@ -7,6 +7,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <RootNamespace>SelectionTranslator.App</RootNamespace>
     <AssemblyName>SelectionTranslator.App</AssemblyName>
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
