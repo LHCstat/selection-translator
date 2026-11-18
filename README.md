@@ -23,7 +23,7 @@
 ## 快速开始
 
 1. 安装 [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0)（Windows x64）
-2. 从 [Releases](../../releases) 下载 `SelectionTranslator.App.exe`
+2. 从 [Releases](../../releases/latest) 下载 `SelectionTranslator.App.exe`
 3. 运行后，托盘右键 →「设置」，选择翻译服务并填入 API Key
 4. 在任意程序里选中英文，点「译」图标或按 `Alt+D`
 
