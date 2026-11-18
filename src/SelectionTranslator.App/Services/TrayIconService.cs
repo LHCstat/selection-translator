@@ -6,6 +6,7 @@ namespace SelectionTranslator.App.Services;
 public sealed class TrayIconService : IDisposable
 {
     private NotifyIcon? _icon;
+    private Icon? _appIcon;
 
     public event EventHandler? SettingsRequested;
     public event EventHandler? ExitRequested;
@@ -17,15 +18,30 @@ public sealed class TrayIconService : IDisposable
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("退出", null, (_, _) => ExitRequested?.Invoke(this, EventArgs.Empty));
 
+        _appIcon = LoadAppIcon();
+
         _icon = new NotifyIcon
         {
-            Icon = SystemIcons.Application,
+            Icon = _appIcon ?? SystemIcons.Application,
             Visible = true,
             Text = "划译",
             ContextMenuStrip = menu
         };
 
         _icon.DoubleClick += (_, _) => SettingsRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    private static Icon? LoadAppIcon()
+    {
+        try
+        {
+            var path = Environment.ProcessPath;
+            return path is null ? null : Icon.ExtractAssociatedIcon(path);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
     }
 
     public void Notify(string message)
@@ -41,5 +57,7 @@ public sealed class TrayIconService : IDisposable
         _icon.Visible = false;
         _icon.Dispose();
         _icon = null;
+        _appIcon?.Dispose();
+        _appIcon = null;
     }
 }

@@ -5,6 +5,7 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <RootNamespace>SelectionTranslator.App</RootNamespace>
     <AssemblyName>SelectionTranslator.App</AssemblyName>
     <NoWarn>$(NoWarn);WFAC010</NoWarn>
