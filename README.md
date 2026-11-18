@@ -1,3 +1,5 @@
+![划译](docs/images/banner.png)
+
 # 划译 · SelectionTranslator
 
 在 Windows 上选中英文，点一下鼠标旁的「译」或按 `Alt+D`，立刻看到流式中文译文。任意程序可用，不需要浏览器插件。
