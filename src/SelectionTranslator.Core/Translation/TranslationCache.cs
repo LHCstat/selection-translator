@@ -117,6 +117,24 @@ public sealed class TranslationCache : IDisposable
         }
     }
 
+    public void Clear()
+    {
+        lock (_lock)
+        {
+            _map.Clear();
+            _lru.Clear();
+        }
+
+        try
+        {
+            if (File.Exists(_path))
+                File.Delete(_path);
+        }
+        catch (IOException)
+        {
+        }
+    }
+
     public void Save()
     {
         try

@@ -13,7 +13,7 @@ public class ClipboardSnapshotTests
             var source = new DataObject();
             source.SetData(DataFormats.UnicodeText, "hello");
 
-            var copy = ClipboardSnapshot.Clone(source);
+            var copy = ClipboardCloner.Clone(source);
 
             return (
                 Copy: copy,

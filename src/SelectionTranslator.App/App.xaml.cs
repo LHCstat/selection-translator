@@ -75,7 +75,9 @@ public partial class App : System.Windows.Application
         var settingsStore = _services.GetRequiredService<SettingsStore>();
         settingsStore.Load();
         ThemeManager.Apply(settingsStore.Current.Ui.Theme);
-        _services.GetRequiredService<TranslationCache>().Load();
+
+        if (settingsStore.Current.Translate.EnableCache)
+            _services.GetRequiredService<TranslationCache>().Load();
 
         _tray = _services.GetRequiredService<TrayIconService>();
         _tray.Show();
@@ -114,7 +116,8 @@ public partial class App : System.Windows.Application
         var window = new SettingsWindow(
             _services!.GetRequiredService<SettingsStore>(),
             _services!.GetRequiredService<ISecretProtector>(),
-            ApplySettings);
+            ApplySettings,
+            () => _services!.GetRequiredService<TranslationCache>().Clear());
         window.ShowDialog();
     }
 

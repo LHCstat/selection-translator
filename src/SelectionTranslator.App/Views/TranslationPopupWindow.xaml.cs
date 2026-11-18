@@ -8,13 +8,18 @@ namespace SelectionTranslator.App.Views;
 
 public partial class TranslationPopupWindow : Window
 {
+    public event EventHandler? Dismissed;
+
     public TranslationPopupWindow()
     {
         InitializeComponent();
         PreviewKeyDown += (_, e) =>
         {
             if (e.Key == Key.Escape)
+            {
                 Hide();
+                Dismissed?.Invoke(this, EventArgs.Empty);
+            }
         };
     }
 

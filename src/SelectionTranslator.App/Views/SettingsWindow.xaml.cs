@@ -18,14 +18,20 @@ public partial class SettingsWindow : Window
     private readonly SettingsStore _store;
     private readonly ISecretProtector _protector;
     private readonly Action _onSaved;
+    private readonly Action _clearCache;
     private bool _loading = true;
 
-    public SettingsWindow(SettingsStore store, ISecretProtector protector, Action onSaved)
+    public SettingsWindow(
+        SettingsStore store,
+        ISecretProtector protector,
+        Action onSaved,
+        Action clearCache)
     {
         InitializeComponent();
         _store = store;
         _protector = protector;
         _onSaved = onSaved;
+        _clearCache = clearCache;
 
         MaxHeight = Math.Max(480, SystemParameters.WorkArea.Height - 24);
         Height = Math.Min(784, MaxHeight);
@@ -52,6 +58,8 @@ public partial class SettingsWindow : Window
         BaseUrlBox.Text = settings.Translate.BaseUrl;
         ModelBox.Text = settings.Translate.Model;
         TargetLangBox.Text = settings.Translate.TargetLang;
+        IncludeTitleBox.IsChecked = settings.Translate.IncludeWindowTitle;
+        CacheBox.IsChecked = settings.Translate.EnableCache;
 
         if (!string.IsNullOrEmpty(settings.Translate.ApiKeyProtected))
         {
@@ -127,6 +135,8 @@ public partial class SettingsWindow : Window
         settings.Translate.BaseUrl = BaseUrlBox.Text.Trim();
         settings.Translate.Model = ModelBox.Text.Trim();
         settings.Translate.TargetLang = TargetLangBox.Text.Trim();
+        settings.Translate.IncludeWindowTitle = IncludeTitleBox.IsChecked == true;
+        settings.Translate.EnableCache = CacheBox.IsChecked == true;
         settings.Translate.ApiKeyProtected = string.IsNullOrEmpty(ApiKeyBox.Password)
             ? string.Empty
             : _protector.Protect(ApiKeyBox.Password);
@@ -143,6 +153,14 @@ public partial class SettingsWindow : Window
     }
 
     private void OnCancel(object sender, RoutedEventArgs e) => Close();
+
+    private void OnClearCache(object sender, RoutedEventArgs e)
+    {
+        _clearCache();
+
+        if (sender is System.Windows.Controls.Button button)
+            button.Content = "已清除";
+    }
 
     private void OnHeaderDrag(object sender, MouseButtonEventArgs e)
     {

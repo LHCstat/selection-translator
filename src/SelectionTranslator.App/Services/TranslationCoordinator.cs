@@ -88,7 +88,13 @@ public sealed class TranslationCoordinator
                 return;
         }
 
-        _popup.Hide();
+        DismissPopup();
+    }
+
+    private void DismissPopup()
+    {
+        _cts?.Cancel();
+        _popup?.Hide();
     }
 
     public async Task TranslateTextAsync(string text, int x, int y, CancellationToken cancellationToken = default)
@@ -107,12 +113,13 @@ public sealed class TranslationCoordinator
         };
 
         viewModel.RetryRequested += (_, _) => _ = RetryAsync();
-        viewModel.CloseRequested += (_, _) => _popup?.Hide();
+        viewModel.CloseRequested += (_, _) => DismissPopup();
 
         if (_popup is null)
         {
             _popup = new TranslationPopupWindow();
             _popup.Closed += (_, _) => _popup = null;
+            _popup.Dismissed += (_, _) => _cts?.Cancel();
         }
 
         _popup.ShowFor(viewModel, x, y, _settings.Current.Ui.PopupWidth);
@@ -120,8 +127,9 @@ public sealed class TranslationCoordinator
         var settings = _settings.Current.Translate;
         var provider = ProviderFactory.Create(settings, _protector, _http);
         var key = CacheKey.For(provider.Id, settings.Model, settings.TargetLang, text);
+        var cacheEnabled = settings.EnableCache;
 
-        if (_cache.TryGet(key, out var cached))
+        if (cacheEnabled && _cache.TryGet(key, out var cached))
         {
             viewModel.Translation = cached;
             viewModel.IsStreaming = false;
@@ -138,7 +146,10 @@ public sealed class TranslationCoordinator
             {
                 viewModel.IsStreaming = false;
                 viewModel.Status = $"{stopwatch.ElapsedMilliseconds} ms";
-                _cache.Set(key, viewModel.Translation);
+
+                if (cacheEnabled)
+                    _cache.Set(key, viewModel.Translation);
+
                 return;
             }
 
@@ -154,7 +165,11 @@ public sealed class TranslationCoordinator
         try
         {
             await provider.TranslateAsync(
-                new TranslationRequest(text, null, settings.TargetLang, ForegroundWindowTitle()),
+                new TranslationRequest(
+                    text,
+                    null,
+                    settings.TargetLang,
+                    settings.IncludeWindowTitle ? ForegroundWindowTitle() : null),
                 progress,
                 cancellationToken);
         }

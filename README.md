@@ -1,5 +1,7 @@
 ![划译](docs/images/banner.png)
 
+![build](https://github.com/LHCstat/selection-translator/actions/workflows/ci.yml/badge.svg)
+
 # 划译 · SelectionTranslator
 
 在 Windows 上选中英文，点一下鼠标旁的「译」或按 `Alt+D`，立刻看到流式中文译文。任意程序可用，不需要浏览器插件。
@@ -37,6 +39,14 @@
 - 翻译服务：智谱 GLM、硅基流动、DeepSeek、Ollama、自定义 OpenAI 兼容接口
 - 外观：跟随系统 / 浅色 / 深色
 - 排除应用：按进程名屏蔽划词
+- 隐私：默认不发送窗口标题；翻译缓存可关闭并一键清除
+
+## 隐私
+
+- 选中文本只发送到你配置的翻译服务，不经过任何中转服务器
+- 默认**不发送**窗口标题；需要语境时可在设置中开启
+- 翻译缓存以明文 JSON 保存在 `%APPDATA%\SelectionTranslator\cache.json`，可在设置中关闭或清除
+- API Key 使用 Windows DPAPI 加密保存
 
 ## 已知限制
 
@@ -66,7 +76,7 @@ powershell -ExecutionPolicy Bypass -File scripts/install.ps1
 
 - `src/SelectionTranslator.Core`：取词、翻译、配置，无 UI 代码
 - `src/SelectionTranslator.App`：WPF 宿主、托盘、悬浮窗
-- `src/SelectionTranslator.Tests`：48 个单元测试
+- `src/SelectionTranslator.Tests`：51 个单元测试
 - `docs/superpowers`：设计文档与实现计划
 
 ## 致谢

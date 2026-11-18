@@ -4,16 +4,18 @@ using System.Windows.Threading;
 
 namespace SelectionTranslator.Core.Interop;
 
+public readonly record struct ClipboardSnapshot(bool Success, bool HasData, object? Data);
+
 public interface IClipboardService
 {
     uint GetSequenceNumber();
     bool TryGetText(out string text);
-    object? Snapshot();
+    ClipboardSnapshot Snapshot();
     void Restore(object? snapshot);
     bool TrySetText(string text);
 }
 
-public static class ClipboardSnapshot
+public static class ClipboardCloner
 {
     /// <summary>
     /// 把剪贴板数据复制到一个脱离的数据对象里。直接把 GetDataObject 返回的对象
@@ -76,22 +78,26 @@ public sealed class ClipboardService : IClipboardService
         return result.Item1;
     }
 
-    public object? Snapshot() => Invoke<object?>(() =>
+    public ClipboardSnapshot Snapshot() => Invoke(() =>
     {
         for (var i = 0; i < Retries; i++)
         {
             try
             {
                 var source = Clipboard.GetDataObject();
-                return source is null ? null : ClipboardSnapshot.Clone(source);
+                if (source is null)
+                    return new ClipboardSnapshot(true, false, null);
+
+                return new ClipboardSnapshot(true, true, ClipboardCloner.Clone(source));
             }
             catch (COMException)
             {
                 Thread.Sleep(RetryDelayMs);
             }
         }
-        return null;
-    }, null);
+
+        return new ClipboardSnapshot(false, false, null);
+    }, new ClipboardSnapshot(false, false, null));
 
     public void Restore(object? snapshot)
     {

@@ -89,6 +89,16 @@
           <CheckBox x:Name="AutoStartBox" Style="{StaticResource ToggleSwitch}"
                     Content="开机自动启动" Margin="0,0,0,4"/>
 
+          <TextBlock Text="隐私" Style="{StaticResource SectionLabel}"/>
+          <CheckBox x:Name="IncludeTitleBox" Style="{StaticResource ToggleSwitch}"
+                    Content="发送窗口标题作为翻译上下文" Margin="0,0,0,13"/>
+          <CheckBox x:Name="CacheBox" Style="{StaticResource ToggleSwitch}"
+                    Content="保存翻译缓存到本机" Margin="0,0,0,8"/>
+          <Button Content="清除翻译缓存" Style="{StaticResource TextButton}"
+                  HorizontalAlignment="Left" Click="OnClearCache"/>
+          <TextBlock Text="缓存以明文保存在 %APPDATA%\SelectionTranslator\cache.json"
+                     Style="{StaticResource FaintText}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+
           <TextBlock Text="外观" Style="{StaticResource SectionLabel}"/>
           <WrapPanel>
             <RadioButton x:Name="ThemeSystem" Style="{StaticResource ChipRadio}" GroupName="Theme"

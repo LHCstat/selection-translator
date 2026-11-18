@@ -21,6 +21,9 @@ public sealed class SelectionIconController : IDisposable
     private string? _processName;
     private int _x;
     private int _y;
+    private int _downX;
+    private int _downY;
+    private IntPtr _downWindow;
 
     public SelectionIconController(
         LowLevelMouseHook hook,
@@ -48,6 +51,9 @@ public sealed class SelectionIconController : IDisposable
     private void OnMouseDown(object? sender, MouseHookEventArgs e)
     {
         _tracker.OnDown(e.X, e.Y, e.Time);
+        _downX = e.X;
+        _downY = e.Y;
+        _downWindow = NativeMethods.GetForegroundWindow();
 
         System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
             _coordinator.DismissIfOutside(e.X, e.Y)));
@@ -63,9 +69,16 @@ public sealed class SelectionIconController : IDisposable
         if (!_tracker.OnUp(e.X, e.Y, e.Time))
             return;
 
+        // 标题栏拖动、窗口边框拖动不算划词。
+        if (!IsInsideClientArea(_downWindow, _downX, _downY))
+            return;
+
         _x = e.X;
         _y = e.Y;
-        _processName = GetProcessName();
+        _processName = GetProcessName(_downWindow);
+
+        if (IsExcluded(_processName))
+            return;
 
         if (_settings.Current.Trigger.AutoTranslate)
         {
@@ -118,12 +131,46 @@ public sealed class SelectionIconController : IDisposable
         return x >= rect.Left && x <= rect.Right && y >= rect.Top && y <= rect.Bottom;
     }
 
-    private static string? GetProcessName()
+    private static bool IsInsideClientArea(IntPtr window, int x, int y)
+    {
+        if (window == IntPtr.Zero)
+            return true;
+
+        if (!NativeMethods.GetClientRect(window, out var client))
+            return true;
+
+        var topLeft = new NativeMethods.POINT { X = client.Left, Y = client.Top };
+        var bottomRight = new NativeMethods.POINT { X = client.Right, Y = client.Bottom };
+
+        if (!NativeMethods.ClientToScreen(window, ref topLeft) ||
+            !NativeMethods.ClientToScreen(window, ref bottomRight))
+            return true;
+
+        return x >= topLeft.X && x <= bottomRight.X && y >= topLeft.Y && y <= bottomRight.Y;
+    }
+
+    private bool IsExcluded(string? processName)
+    {
+        if (string.IsNullOrEmpty(processName))
+            return false;
+
+        var own = Path.GetFileNameWithoutExtension(Environment.ProcessPath);
+        if (!string.IsNullOrEmpty(own) &&
+            string.Equals(processName, own, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return _settings.Current.Exclude.Processes
+            .Any(p => string.Equals(p, processName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static string? GetProcessName(IntPtr window)
     {
         try
         {
-            var handle = NativeMethods.GetForegroundWindow();
-            NativeMethods.GetWindowThreadProcessId(handle, out var processId);
+            if (window == IntPtr.Zero)
+                window = NativeMethods.GetForegroundWindow();
+
+            NativeMethods.GetWindowThreadProcessId(window, out var processId);
             return Process.GetProcessById((int)processId).ProcessName;
         }
         catch (Exception)

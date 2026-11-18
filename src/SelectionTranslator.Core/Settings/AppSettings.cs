@@ -24,6 +24,8 @@ public sealed class TranslateSettings
     public string ApiKeyProtected { get; set; } = string.Empty;
     public string TargetLang { get; set; } = "简体中文";
     public int TimeoutSeconds { get; set; } = 60;
+    public bool IncludeWindowTitle { get; set; }
+    public bool EnableCache { get; set; } = true;
 }
 
 public sealed class UiSettings

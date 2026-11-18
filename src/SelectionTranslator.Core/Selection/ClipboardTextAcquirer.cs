@@ -30,10 +30,19 @@ public sealed class ClipboardTextAcquirer : ITextAcquirer
             return null;
 
         var snapshot = _clipboard.Snapshot();
+        if (!snapshot.Success)
+        {
+            // 无法可靠保存原内容时不冒险改写剪贴板。
+            _gate.Release();
+            return null;
+        }
+
+        var sequenceBefore = _clipboard.GetSequenceNumber();
+        var ourSequence = 0u;
+        var sawCopy = false;
 
         try
         {
-            var sequence = _clipboard.GetSequenceNumber();
             _input.SendCopy();
 
             var attempts = Math.Max(1, (int)Math.Ceiling(_timeout.TotalMilliseconds / _pollInterval.TotalMilliseconds));
@@ -42,8 +51,18 @@ public sealed class ClipboardTextAcquirer : ITextAcquirer
             {
                 await Task.Delay(_pollInterval, cancellationToken);
 
-                if (_clipboard.GetSequenceNumber() == sequence)
+                var sequence = _clipboard.GetSequenceNumber();
+                if (sequence == sequenceBefore)
                     continue;
+
+                if (sawCopy && sequence != ourSequence)
+                {
+                    // 我们复制之后又有别的程序改了剪贴板，放弃本次取词，也不覆盖它。
+                    return null;
+                }
+
+                ourSequence = sequence;
+                sawCopy = true;
 
                 if (_clipboard.TryGetText(out var text) && !string.IsNullOrWhiteSpace(text))
                     return text;
@@ -53,7 +72,9 @@ public sealed class ClipboardTextAcquirer : ITextAcquirer
         }
         finally
         {
-            _clipboard.Restore(snapshot);
+            if (snapshot.HasData && sawCopy && _clipboard.GetSequenceNumber() == ourSequence)
+                _clipboard.Restore(snapshot.Data);
+
             _gate.Release();
         }
     }
